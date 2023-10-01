@@ -1,0 +1,1 @@
+MongoServerError: E11000 duplicate key error collection: serectDB.users index: username_1 dup key: { username: "1@2.com" }
