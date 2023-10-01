@@ -38,7 +38,7 @@ connectToMongodb();
 // Initialize Express session
 app.use(
   session({
-    secret: "keyboard cat",
+    secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: false,
   })
