@@ -7,6 +7,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const bcrypt = require("bcrypt");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 const app = express();
 app.set("view engine", "ejs");
 
@@ -57,8 +58,23 @@ const userSchema = new mongoose.Schema({
   username: String,
   password: String,
   googleId: String,
+  facebookID: String,
 });
-
+userSchema.index(
+  {
+    googleId: 1,
+    facebookID: 1,
+    username: 1,
+  },
+  {
+    unique: true,
+    partialFilterExpression: {
+      googleId: { $type: "string" },
+      facebookID: { $type: "string" },
+      username: { $type: "string" },
+    },
+  }
+);
 // Create the User model
 const User = mongoose.model("User", userSchema);
 const Secrets = mongoose.model("Secret", secretsSchema);
@@ -82,6 +98,7 @@ app.use((req, res, next) => {
   next();
 });
 
+//google stratergy start
 passport.use(
   new GoogleStrategy(
     {
@@ -99,6 +116,44 @@ passport.use(
           // User doesn't exist in the database, create a new user
           user = new User({
             googleId: profile.id,
+          });
+
+          await user.save();
+        }
+
+        // Log in the user
+        req.login(user, (err) => {
+          if (err) {
+            return done(err);
+          }
+
+          done(null, user);
+        });
+      } catch (err) {
+        done(err);
+      }
+    }
+  )
+);
+
+//facebook stratergy start **
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOK_APP_ID,
+      clientSecret: process.env.FACEBOOK_APP_SECRET,
+      callbackURL: "http://localhost:3000/auth/facebook/secrets",
+      passReqToCallback: true,
+    },
+    async function (req, accessToken, refreshToken, profile, done) {
+      try {
+        // Check if a user with the given Google ID exists in your database
+        let user = await User.findOne({ facebookID: profile.id });
+
+        if (!user) {
+          // User doesn't exist in the database, create a new user
+          user = new User({
+            facebookID: profile.id,
           });
 
           await user.save();
@@ -139,17 +194,40 @@ passport.use(
     }
   })
 );
-
+//prompt:consent will force goodle to open signup google window every time hit the continue with google
 app.get(
   "/auth/google",
-  passport.authenticate("google", { scope: ["profile"], prompt: "consent" }) //prompt:consent will force goodle to open signup google window every time hit the continue with google
+  passport.authenticate("google", { scope: ["profile"], prompt: "consent" })
 );
 
 // Google callback route (the URL specified in the Google API Console)
 app.get(
   "/auth/google/secrets",
-  passport.authenticate("google", { failureRedirect: "/login" }),
+  passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
+    // Successful authentication, redirect to a success page
+    res.redirect("/secrets");
+  }
+);
+
+//When user press login with facebook this will trigger
+app.get(
+  "/auth/facebook",
+  passport.authenticate("facebook", {
+    scope: ["email"],
+    prompt: "consent",
+  })
+);
+
+// Facebook callback route (the URL specified in the Google API Console)
+
+app.get(
+  "/auth/facebook/secrets",
+  passport.authenticate("facebook", {
+    failureRedirect: "/",
+    failureMessage: true,
+  }),
+  function (req, res) {
     // Successful authentication, redirect to a success page
     res.redirect("/secrets");
   }
@@ -162,16 +240,17 @@ app.get("/", function (req, res) {
   res.render("index");
 });
 
-// app.get("/login", function (req, res) {
-//   if (req.isAuthenticated()) {
-//     return res.redirect("/secrets");
-//   }
-//   res.render("index");
-// });
-
-// app.get("/register", function (req, res) {
-//   res.render("register");
-// });
+//This is use to handle the call back from facebook
+app.get(
+  "/oauth2/redirect/facebook",
+  passport.authenticate("facebook", {
+    failureRedirect: "/login",
+    failureMessage: true,
+  }),
+  function (req, res) {
+    res.redirect("/");
+  }
+);
 
 function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
