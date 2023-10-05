@@ -29,9 +29,6 @@ async function connectToMongodb() {
     const url = process.env.MONDO_DB_URL;
     await mongoose.connect(localUrl);
     console.log("\nScussfully connect to the mongoDB server\n");
-    app.listen(process.env.PORT || 3000, function () {
-      console.log("Server started on port 3000");
-    });
   } catch (error) {
     console.log("\nConnection faild => " + error + "\n");
   }
@@ -106,8 +103,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL:
-        "https://busy-tan-cricket-slip.cyclic.app/auth/google/secrets",
+      callbackURL: "https://wicksper.cyclic.app/auth/google/secrets",
       passReqToCallback: true, // Pass the req object to the callback
     },
     async (req, accessToken, refreshToken, profile, done) => {
@@ -145,7 +141,7 @@ passport.use(
     {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: "https://busy-tan-cricket-slip.cyclic.app/facebook/secrets",
+      callbackURL: "https://wicksper.cyclic.app/facebook/secrets",
       passReqToCallback: true,
     },
     async function (req, accessToken, refreshToken, profile, done) {
@@ -395,4 +391,8 @@ app.get("/logout", function (req, res) {
     }
     res.redirect("/");
   });
+});
+
+app.listen(process.env.PORT || 3000, function () {
+  console.log("Server started on port 3000");
 });
