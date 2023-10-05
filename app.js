@@ -25,9 +25,9 @@ app.use((err, req, res, next) => {
 // Connect to MongoDB
 async function connectToMongodb() {
   try {
-    const localUrl = "mongodb://127.0.0.1:27017/serectDB";
+    const localUrl = process.env.LOCAL_URL;
     const url = process.env.MONDO_DB_URL;
-    await mongoose.connect(localUrl);
+    await mongoose.connect(url);
     console.log("\nScussfully connect to the mongoDB server\n");
   } catch (error) {
     console.log("\nConnection faild => " + error + "\n");
