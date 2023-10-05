@@ -1,0 +1,30 @@
+Hello this is my mini project "WICKSPER".Actually
+This is a mini version of wisper app .Using WICKSPER users can share there
+secrets annomysly.
+
+
+I used this post to demostrate my skills in frontend and backend.by doing this i get strong knowledge
+of mongo db and nodejs. All so i use differnt kind of libraies such as passport, facebook goole authentication, express sessions etc
+Also use mongo db for database management
+
+technologies use
+html/css/js
+node js
+ejs
+mongo db
+
+hilighted ares
+
+->log in with social meadia accounts google,facebook
+->use hashing and salting for store password
+
+
+
+
+
+
+
+features i'm hoping to add - 
+-> add other social media platform logins
+-> cerate a differnt page so usercan view their secret
+-> combine node js and react to buld messinging between users annomysly
